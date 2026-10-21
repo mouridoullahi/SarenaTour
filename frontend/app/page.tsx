@@ -5,6 +5,8 @@ import PourquoiSection from '../components/PourquoiSection'; // section « Pourq
 import AvisSection from '../components/AvisSection';         // section des avis voyageurs (fichier séparé)
 import WhatsAppIcon from '../components/WhatsAppIcon';       // logo WhatsApp
 import MobileMenu from '../components/MobileMenu';           // menu « trois traits » du téléphone
+import ContactSection from '../components/ContactSection';
+import { MapPin, Mail } from 'lucide-react';
 
 
 /* =====================================================
@@ -83,7 +85,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);                 // true tant que les excursions chargent
   const [error, setError] = useState<string | null>(null);      // message d'erreur éventuel
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle'); // état du formulaire de devis
-  const [waText, setWaText] = useState('');                     // message WhatsApp préparé après l'envoi du formulaire
+  const [waText, setWaText] = useState('');    
+    // L'année du pied de page (calculée côté navigateur pour éviter l'erreur « new Date »)
+  const [annee, setAnnee] = useState(2026);
+  useEffect(() => { setAnnee(new Date().getFullYear()); }, []);                 // message WhatsApp préparé après l'envoi du formulaire
 
   // --- Chargement des excursions : s'exécute une fois à l'ouverture de la page ---
   useEffect(() => {
@@ -321,72 +326,102 @@ export default function Home() {
       <PourquoiSection />   {/* components/PourquoiSection.tsx */}
       <AvisSection />       {/* components/AvisSection.tsx : avis + formulaire « Laisser un avis » */}
 
-      {/* ================= CONTACT : coordonnées à gauche, formulaire de devis à droite ================= */}
-      <section id="contact" className="py-24 bg-[#FFF4EC] border-t border-[#EDEDED]">
-        <div className="max-w-[1200px] mx-auto px-6 sm:px-8">
-          <p className={`${surtitre} mb-3`}>Contact</p>
-          <h2 className={`${titres} text-4xl sm:text-5xl font-extrabold mb-12`}>Parlons de votre voyage</h2>
+            <ContactSection
+        status={status}
+        waText={waText}
+        onSubmit={handleSubmit}
+        waNumber={WA_NUMBER}
+        phone={PHONE_DISPLAY}
+        email={EMAIL}
+      />
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-8">
-            {/* Bloc noir : coordonnées (la liste se modifie facilement dans le tableau) */}
-            <div className="bg-[#111111] text-white rounded-lg p-8 space-y-6">
-              <p className="text-white/80">Basé à Pointe Sarène, je réponds le plus vite sur WhatsApp.</p>
+            {/* ================= PIED DE PAGE (3 niveaux) ================= */}
+      <footer className="bg-[#0B0B0B] text-white">
+
+        {/* Filet dégradé orange tout en haut du pied de page */}
+        <div className="h-1 bg-gradient-to-r from-[#F26B1D] via-[#FF9A52] to-[#F26B1D]" />
+
+        {/* ----- NIVEAU 1 : bandeau d'appel à l'action ----- */}
+        <div className="max-w-[1200px] mx-auto px-6 sm:px-8 py-16 flex flex-wrap items-center justify-between gap-8 border-b border-white/10">
+          <h2 className="font-[family-name:var(--font-serif)] text-3xl sm:text-5xl font-extrabold leading-tight max-w-xl">
+            Prêt à partir ? <span className="text-[#F26B1D]">Écrivez-moi.</span>
+          </h2>
+          {/* Bouton vert : ouvre WhatsApp. « group » fait glisser la flèche au survol du bouton */}
+          <a
+            href={`https://wa.me/${WA_NUMBER}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-3 bg-[#25D366] hover:bg-[#1EBE5A] text-[#06240F] font-bold px-7 py-4 rounded-md transition"
+          >
+            <WhatsAppIcon size={22} />
+            Discuter sur WhatsApp
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
+          </a>
+        </div>
+
+        {/* ----- NIVEAU 2 : trois colonnes (nom / navigation / contact) ----- */}
+        <div className="max-w-[1200px] mx-auto px-6 sm:px-8 py-14 grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1.2fr] gap-10">
+
+          {/* Colonne 1 : le nom et une phrase de présentation */}
+          <div>
+            <p className="font-[family-name:var(--font-serif)] text-3xl font-extrabold">
+              Sarena<span className="text-[#F26B1D]">Tour</span>
+            </p>
+            <p className="text-white/60 mt-4 max-w-sm leading-relaxed">
+              Excursions et circuits sur mesure au Sénégal, avec un guide qui vit ici.
+            </p>
+          </div>
+
+          {/* Colonne 2 : les liens vers les sections (passent en orange et glissent au survol) */}
+          <nav>
+            <p className="text-xs uppercase tracking-widest text-[#FF9A52] font-bold mb-4">Navigation</p>
+            <ul className="space-y-3">
               {[
-                ['WhatsApp', PHONE_DISPLAY, `https://wa.me/${WA_NUMBER}`],
-                ['Email', EMAIL, `mailto:${EMAIL}`],
-                ['Où nous trouver', 'Mbour, Sénégal', ''],
-              ].map(([label, valeur, lien]) => (
-                <div key={label} className="border-t border-white/15 pt-4">
-                  <p className="text-xs uppercase tracking-widest text-[#FF9A52] mb-1">{label}</p>
-                  {lien ? <a href={lien} className="font-semibold break-all hover:text-[#FF9A52]">{valeur}</a> : <p className="font-semibold">{valeur}</p>}
-                </div>
+                ['À propos', '#apropos'],
+                ['Destinations', '#destinations'],
+                ['Pourquoi nous', '#pourquoi'],
+                ['Avis', '#temoignages'],
+                ['Contact', '#contact'],
+              ].map(([texte, lien]) => (
+                <li key={lien}>
+                  <a href={lien} className="inline-block text-white/70 hover:text-[#F26B1D] hover:translate-x-1 transition-all">
+                    {texte}
+                  </a>
+                </li>
               ))}
-            </div>
+            </ul>
+          </nav>
 
-            {/* Formulaire de devis */}
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-[#E5E5E5] p-8 space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Votre nom</label>
-                  <input name="nom" required className={champ} />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Email (facultatif)</label>
-                  <input name="email" type="email" className={champ} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Votre projet</label>
-                <textarea name="projet" rows={5} required className={champ}
-                  placeholder="Dates, nombre de personnes, destinations qui vous font envie…" />
-              </div>
-              <button type="submit" disabled={status === 'loading'}
-                className="bg-[#F26B1D] hover:bg-[#D95A10] disabled:opacity-60 text-white font-bold px-8 py-3.5 rounded-md transition">
-                {status === 'loading' ? 'Envoi…' : 'Envoyer ma demande'}
-              </button>
-
-              {/* Messages après l'envoi */}
-              {status === 'ok' && (
-                <div className="rounded-md bg-[#FFF4EC] border border-[#FFD9BF] p-4 text-sm">
-                  <p className="font-semibold">Merci ! Votre demande est bien enregistrée.</p>
-                  <a href={waLink(waText)} target="_blank" rel="noopener noreferrer" className="underline text-[#D95A10]">Continuer sur WhatsApp →</a>
-                </div>
-              )}
-              {status === 'error' && <p className="text-red-600 text-sm">Une erreur est survenue. Réessayez ou écrivez-moi sur WhatsApp.</p>}
-            </form>
+          {/* Colonne 3 : les coordonnées (elles viennent des réglages en haut de page.tsx) */}
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[#FF9A52] font-bold mb-4">Contact</p>
+            <ul className="space-y-4 text-white/70">
+              <li>
+                <a href={`https://wa.me/${WA_NUMBER}`} className="flex items-center gap-3 hover:text-white transition">
+                  <WhatsAppIcon size={18} /> {PHONE_DISPLAY}
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${EMAIL}`} className="flex items-center gap-3 hover:text-white transition break-all">
+                  <Mail size={18} className="shrink-0 text-[#F26B1D]" /> {EMAIL}
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <MapPin size={18} className="shrink-0 text-[#F26B1D]" /> Mbour, Sénégal
+              </li>
+            </ul>
           </div>
         </div>
-      </section>
 
-      {/* ================= PIED DE PAGE ================= */}
-      <footer className="bg-[#111111] text-white py-12">
-        <div className="max-w-[1200px] mx-auto px-6 sm:px-8 flex flex-wrap items-center justify-between gap-6">
-          <p className={`${titres} text-2xl font-extrabold`}>Sarena<span className="text-[#F26B1D]">Tour</span></p>
-          <p className="text-sm text-white/70">{PHONE_DISPLAY} · {EMAIL} · Mbour, Sénégal</p>
+        {/* ----- NIVEAU 3 : barre du bas ----- */}
+        <div className="border-t border-white/10">
+          <div className="max-w-[1200px] mx-auto px-6 sm:px-8 py-6 flex flex-wrap items-center justify-between gap-4 text-sm text-white/50">
+            {/* L'année se met à jour toute seule */}
+            <p>© {annee} SarenaTour — Tous droits réservés</p>
+            {/* href="#" ramène tout en haut de la page */}
+            <a href="#" className="hover:text-[#F26B1D] transition">Retour en haut ↑</a>
+          </div>
         </div>
-        <p className="max-w-[1200px] mx-auto px-6 sm:px-8 mt-8 pt-6 border-t border-white/15 text-xs text-white/60">
-          © 2026 SarenaTour — Tous droits réservés
-        </p>
       </footer>
     </div>
   );
